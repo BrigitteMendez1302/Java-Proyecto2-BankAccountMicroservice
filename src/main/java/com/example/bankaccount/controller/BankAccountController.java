@@ -17,7 +17,7 @@ import java.util.NoSuchElementException;
  * It provides endpoints for creating, retrieving, depositing, withdrawing, and deleting bank accounts.
  */
 @RestController
-@RequestMapping("/accounts")
+@RequestMapping("/api/accounts")
 public class BankAccountController {
 
     private final BankAccountService bankAccountService;
