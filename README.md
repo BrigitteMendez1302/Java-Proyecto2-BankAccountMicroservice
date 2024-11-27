@@ -10,6 +10,7 @@ A microservice for managing bank account data in a banking system. This microser
 - [Configuration](#configuration)
 - [API Documentation](#api-documentation)
 - [Project Structure](#project-structure)
+- [Coverage Report](#coverage-report)
 - [License](#license)
 
 ---
@@ -120,6 +121,11 @@ src/
 └── test/
     └── java/                  # Unit and integration tests
 ```
+---
+## Coverage Report
+Aquí se muestra el reporte de cobertura de pruebas unitarias:
+
+![Reporte de cobertura](https://i.ibb.co/5jvxJZN/bankaccountms.png)
 
 ---
 
