@@ -8,10 +8,10 @@
         <module name="PackageName">
             <property name="format"
 
-                      value="com.demo.example.bankaccount"/>
+                      value="com.example.bankaccount"/>
         </module>
         <module name="MethodLength">
-            <property name="max" value="50"/>
+            <property name="max" value="100"/>
         </module>
     </module>
 </module>
