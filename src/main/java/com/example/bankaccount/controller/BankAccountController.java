@@ -107,4 +107,24 @@ public class BankAccountController {
         return isDeleted ? new ResponseEntity<>(HttpStatus.NO_CONTENT)
                 : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
+
+    /**
+     * Endpoint to retrieve all bank accounts for a specific customer.
+     *
+     * @param customerId The ID of the customer whose bank accounts are to be retrieved.
+     * @return A list of all bank accounts for the specified customer.
+     */
+    @GetMapping("/customer/{customerId}")
+    public ResponseEntity<List<BankAccount>> getBankAccountsByCustomerId(@PathVariable Long customerId) {
+        // Obtener las cuentas bancarias asociadas al cliente
+        List<BankAccount> bankAccounts = bankAccountService.getBankAccountsByCustomerId(customerId);
+
+        // Si no hay cuentas asociadas, devolver 404
+        if (bankAccounts.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        // Retornar las cuentas con un status 200 OK
+        return new ResponseEntity<>(bankAccounts, HttpStatus.OK);
+    }
 }
