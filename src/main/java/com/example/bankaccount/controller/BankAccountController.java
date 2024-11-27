@@ -1,5 +1,8 @@
 package com.example.bankaccount.controller;
 
+import com.example.bankaccount.dto.BankAccountRequestDto;
+import com.example.bankaccount.dto.BankAccountResponseDto;
+import com.example.bankaccount.mapper.BankAccountMapper;
 import com.example.bankaccount.model.BankAccount;
 import com.example.bankaccount.service.BankAccountService;
 import jakarta.validation.Valid;
@@ -10,11 +13,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 /**
  * BankAccountController handles HTTP requests for managing bank accounts.
- * It provides endpoints for creating, retrieving, depositing, withdrawing, and deleting bank accounts.
  */
 @RestController
 @RequestMapping("/api/accounts")
@@ -28,103 +30,82 @@ public class BankAccountController {
     }
 
     /**
-     * Endpoint to create a new bank account for a customer.
-     *
-     * @param bankAccount The bank account to be created.
-     * @return The created bank account with status 201 Created.
+     * Create a new bank account for a customer.
      */
     @PostMapping
-    public ResponseEntity<BankAccount> createBankAccount(@Valid @RequestBody BankAccount bankAccount) {
+    public ResponseEntity<BankAccountResponseDto> createBankAccount(@Valid @RequestBody BankAccountRequestDto requestDto) {
+        BankAccount bankAccount = BankAccountMapper.toEntity(requestDto);
         BankAccount createdAccount = bankAccountService.createBankAccount(bankAccount);
-        return new ResponseEntity<>(createdAccount, HttpStatus.CREATED);
+        BankAccountResponseDto responseDto = BankAccountMapper.toResponseDto(createdAccount);
+        return new ResponseEntity<>(responseDto, HttpStatus.CREATED);
     }
 
     /**
-     * Endpoint to retrieve all bank accounts.
-     *
-     * @return A list of all bank accounts.
+     * Retrieve all bank accounts.
      */
     @GetMapping
-    public ResponseEntity<List<BankAccount>> getAllBankAccounts() {
+    public ResponseEntity<List<BankAccountResponseDto>> getAllBankAccounts() {
         List<BankAccount> bankAccounts = bankAccountService.getAllBankAccounts();
-        return new ResponseEntity<>(bankAccounts, HttpStatus.OK);
+        List<BankAccountResponseDto> responseDtos = bankAccounts.stream()
+                .map(BankAccountMapper::toResponseDto)
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(responseDtos, HttpStatus.OK);
     }
 
     /**
-     * Endpoint to retrieve a bank account by ID.
-     *
-     * @param id The ID of the bank account to retrieve.
-     * @return The bank account if found, or 404 Not Found if not found.
+     * Retrieve a bank account by ID.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<BankAccount> getBankAccountById(@PathVariable Long id) {
+    public ResponseEntity<BankAccountResponseDto> getBankAccountById(@PathVariable Long id) {
         BankAccount bankAccount = bankAccountService.getBankAccountById(id)
-                .orElseThrow(() -> new NoSuchElementException("Bank account not found"));
-        return new ResponseEntity<>(bankAccount, HttpStatus.OK);
+                .orElseThrow(() -> new IllegalArgumentException("Bank account not found"));
+        BankAccountResponseDto responseDto = BankAccountMapper.toResponseDto(bankAccount);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
     /**
-     * Endpoint to deposit an amount into a bank account.
-     *
-     * @param accountId The ID of the bank account to deposit into.
-     * @param amount   The amount to deposit.
-     * @return The updated bank account with the new balance.
+     * Deposit an amount into a bank account.
      */
     @PutMapping("/{accountId}/deposit")
-    public ResponseEntity<BankAccount> deposit(@PathVariable Long accountId, @RequestParam BigDecimal amount) {
-        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Deposit amount must be positive.");
-        }
+    public ResponseEntity<BankAccountResponseDto> deposit(@PathVariable Long accountId, @RequestParam BigDecimal amount) {
         BankAccount updatedAccount = bankAccountService.deposit(accountId, amount);
-        return new ResponseEntity<>(updatedAccount, HttpStatus.OK);
+        BankAccountResponseDto responseDto = BankAccountMapper.toResponseDto(updatedAccount);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
     /**
-     * Endpoint to withdraw an amount from a bank account.
-     *
-     * @param accountId The ID of the bank account to withdraw from.
-     * @param amount   The amount to withdraw.
-     * @return The updated bank account with the new balance.
+     * Withdraw an amount from a bank account.
      */
     @PutMapping("/{accountId}/withdraw")
-    public ResponseEntity<BankAccount> withdraw(@PathVariable Long accountId, @RequestParam BigDecimal amount) {
-        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Withdrawal amount must be positive.");
-        }
+    public ResponseEntity<BankAccountResponseDto> withdraw(@PathVariable Long accountId, @RequestParam BigDecimal amount) {
         BankAccount updatedAccount = bankAccountService.withdraw(accountId, amount);
-        return new ResponseEntity<>(updatedAccount, HttpStatus.OK);
+        BankAccountResponseDto responseDto = BankAccountMapper.toResponseDto(updatedAccount);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
     /**
-     * Endpoint to delete a bank account by ID.
-     *
-     * @param id The ID of the bank account to delete.
-     * @return 204 No Content if successful, or 404 Not Found if the account does not exist.
+     * Delete a bank account by ID.
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBankAccount(@PathVariable Long id) {
-        boolean isDeleted = bankAccountService.deleteBankAccount(id);
-        return isDeleted ? new ResponseEntity<>(HttpStatus.NO_CONTENT)
-                : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        bankAccountService.deleteBankAccount(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     /**
-     * Endpoint to retrieve all bank accounts for a specific customer.
-     *
-     * @param customerId The ID of the customer whose bank accounts are to be retrieved.
-     * @return A list of all bank accounts for the specified customer.
+     * Retrieve all bank accounts for a specific customer.
      */
     @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<BankAccount>> getBankAccountsByCustomerId(@PathVariable Long customerId) {
-        // Obtener las cuentas bancarias asociadas al cliente
+    public ResponseEntity<List<BankAccountResponseDto>> getBankAccountsByCustomerId(@PathVariable Long customerId) {
         List<BankAccount> bankAccounts = bankAccountService.getBankAccountsByCustomerId(customerId);
+        List<BankAccountResponseDto> responseDtos = bankAccounts.stream()
+                .map(BankAccountMapper::toResponseDto)
+                .collect(Collectors.toList());
 
-        // Si no hay cuentas asociadas, devolver 404
-        if (bankAccounts.isEmpty()) {
+        if (responseDtos.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        // Retornar las cuentas con un status 200 OK
-        return new ResponseEntity<>(bankAccounts, HttpStatus.OK);
+        return new ResponseEntity<>(responseDtos, HttpStatus.OK);
     }
 }

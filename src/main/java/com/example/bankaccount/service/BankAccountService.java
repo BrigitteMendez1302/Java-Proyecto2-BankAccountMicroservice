@@ -81,12 +81,4 @@ public interface BankAccountService {
      * @throws IllegalArgumentException if the balance would go below allowed limits.
      */
     BankAccount withdraw(Long id, BigDecimal amount);
-
-    /**
-     * Checks if a customer has at least one bank account.
-     *
-     * @param customerId The ID of the customer to check.
-     * @return True if the customer has one or more bank accounts, false otherwise.
-     */
-    boolean customerHasBankAccounts(Long customerId);
 }
